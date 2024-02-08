@@ -1,0 +1,17 @@
+# models
+*.pth
+*.pt
+*.json.gz
+*.bin
+*.model
+
+# data
+*.json
+*.txt
+*/data/*
+
+# etc, cache
+.DS_Store
+__pycache__/
+*.out
+*.pyc
