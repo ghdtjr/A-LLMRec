@@ -26,7 +26,6 @@ parser.add_argument('--inference_only', default=False, action='store_true')
 parser.add_argument('--state_dict_path', default=None, type=str)
 
 args = parser.parse_args()
-log_args_time(args)
 
 if __name__ == '__main__':
     
@@ -36,7 +35,7 @@ if __name__ == '__main__':
 
     [user_train, user_valid, user_test, usernum, itemnum] = dataset
     print('user num:', usernum, 'item num:', itemnum)
-    num_batch = len(user_train) // args.batch_size # tail? + ((len(user_train) % args.batch_size) != 0)
+    num_batch = len(user_train) // args.batch_size
     cc = 0.0
     for u in user_train:
         cc += len(user_train[u])
@@ -47,30 +46,26 @@ if __name__ == '__main__':
     # dataloader
     sampler = WarpSampler(user_train, usernum, itemnum, batch_size=args.batch_size, maxlen=args.maxlen, n_workers=3)       
     # model init
-    model = SASRec(usernum, itemnum, args).to(args.device) # no ReLU activation in original SASRec implementation?
+    model = SASRec(usernum, itemnum, args).to(args.device)
     
     for name, param in model.named_parameters():
         try:
             torch.nn.init.xavier_normal_(param.data)
         except:
-            pass # just ignore those failed init layers
+            pass
     
-    # this fails embedding init 'Embedding' object has no attribute 'dim'
-    # model.apply(torch.nn.init.xavier_uniform_)
-    
-    model.train() # enable model training
+    model.train()
     
     epoch_start_idx = 1
     if args.state_dict_path is not None:
         try:
-            # kwargs, checkpoint = torch.load(args.state_dict_path, map_location=torch.device(args.device))
             kwargs, checkpoint = torch.load(args.state_dict_path, map_location=torch.device(args.device))
             kwargs['args'].device = args.device
             model = SASRec(**kwargs).to(args.device)
             model.load_state_dict(checkpoint)
             tail = args.state_dict_path[args.state_dict_path.find('epoch=') + 6:]
             epoch_start_idx = int(tail[:tail.find('.')]) + 1
-        except: # in case your pytorch version is not 1.6 etc., pls debug by pdb if load weights failed
+        except:
             print('failed loading state_dicts, pls check file path: ', end="")
             print(args.state_dict_path)
             print('pdb enabled for your quick check, pls type exit() if you do not need it')
@@ -82,22 +77,20 @@ if __name__ == '__main__':
         t_test = evaluate(model, dataset, args)
         print('test (NDCG@10: %.4f, HR@10: %.4f)' % (t_test[0], t_test[1]))
     
-    # ce_criterion = torch.nn.CrossEntropyLoss()
-    # https://github.com/NVIDIA/pix2pixHD/issues/9 how could an old bug appear again...
-    bce_criterion = torch.nn.BCEWithLogitsLoss() # torch.nn.BCELoss()
+    bce_criterion = torch.nn.BCEWithLogitsLoss()
     adam_optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.98))
     
     T = 0.0
     t0 = time.time()
     
     for epoch in tqdm(range(epoch_start_idx, args.num_epochs + 1)):
-        if args.inference_only: break # just to decrease identition
-        for step in range(num_batch): # tqdm(range(num_batch), total=num_batch, ncols=70, leave=False, unit='b'):
-            u, seq, pos, neg = sampler.next_batch() # tuples to ndarray
+        if args.inference_only: break
+        for step in range(num_batch):
+            u, seq, pos, neg = sampler.next_batch()
             u, seq, pos, neg = np.array(u), np.array(seq), np.array(pos), np.array(neg)
             pos_logits, neg_logits = model(u, seq, pos, neg)
             pos_labels, neg_labels = torch.ones(pos_logits.shape, device=args.device), torch.zeros(neg_logits.shape, device=args.device)
-            # print("\neye ball check raw_logits:"); print(pos_logits); print(neg_logits) # check pos_logits > 0, neg_logits < 0
+
             adam_optimizer.zero_grad()
             indices = np.where(pos != 0)
             loss = bce_criterion(pos_logits[indices], pos_labels[indices])

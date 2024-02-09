@@ -109,17 +109,16 @@ class llm4rec(nn.Module):
             ).to(device)
             
             llm_tokens, input_part_targets_len = self.concat_text_input_output(
-                text_input_tokens.input_ids,#얘는 prefix 인가?
+                text_input_tokens.input_ids,
                 text_input_tokens.attention_mask,
                 text_output_tokens.input_ids,
                 text_output_tokens.attention_mask,
             )
-            # do not apply loss to the padding
+
             targets = llm_tokens['input_ids'].masked_fill(
                 llm_tokens['input_ids'] == self.llm_tokenizer.pad_token_id, -100
             )
 
-            # do not apply loss to the text input (i.e., instruction)
             for i, l in enumerate(input_part_targets_len):
                 targets[i][:l] = -100
             
@@ -149,74 +148,3 @@ class llm4rec(nn.Module):
         loss = outputs.loss
 
         return loss
-        
-    # @torch.no_grad()
-    # def generate(
-    #     self,
-    #     samples,
-    #     use_nucleus_sampling=False,
-    #     num_beams=1,
-    #     min_length=1,
-    #     top_p=0.9,
-    #     repetition_penalty=1.5,
-    #     length_penalty=1,
-    #     num_captions=1,
-    #     temperature=1,
-    # ):
-    #     self.llm_tokenizer.padding_side = "left"
-
-    #     if "prompt" in samples.keys():
-    #         prompt = samples["prompt"]
-    #     else:
-    #         prompt = self.prompt
-
-    #     image = samples["image"]
-
-    #     bs = image.size(0)
-
-    #     if isinstance(prompt, str):
-    #         prompt = [prompt] * bs
-    #     else:
-    #         assert len(prompt) == bs, "The number of prompts must be equal to the batch size."
-
-    #     # For TextCaps
-    #     if "ocr_tokens" in samples.keys() and "{}" in prompt[0]:
-    #         prompt = [p.format(', '.join(samples['ocr_tokens'][i][:30])) for i, p in enumerate(prompt)]
-
-    #     query_tokens = self.query_tokens.expand(bs, -1, -1)
-
-    #     with self.maybe_autocast():
-    #         image_embeds = self.ln_vision(self.visual_encoder(image))
-    #     image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(image.device)
-
-    #     llm_tokens = self.llm_tokenizer(
-    #         prompt,
-    #         padding="longest",
-    #         return_tensors="pt"
-    #     ).to(image.device)
-
-    #     with self.maybe_autocast():
-    #         inputs_embeds = self.llm_model.get_input_embeddings()(llm_tokens.input_ids)
-    #         inputs_embeds = torch.cat([inputs_llm, inputs_embeds], dim=1)
-    #         attention_mask = torch.cat([atts_llm, llm_tokens.attention_mask], dim=1)
-
-    #         outputs = self.llm_model.generate(
-    #             inputs_embeds=inputs_embeds,
-    #             attention_mask=attention_mask,
-    #             do_sample=use_nucleus_sampling,
-    #             top_p=top_p,
-    #             temperature=temperature,
-    #             num_beams=num_beams,
-    #             # max_length=max_length,
-    #             min_length=min_length,
-    #             # eos_token_id=self.eos_token_id,
-    #             repetition_penalty=repetition_penalty,
-    #             length_penalty=length_penalty,
-    #             num_return_sequences=num_captions,
-    #         )
-
-    #     outputs[outputs == 0] = 2 # convert output id 0 to 2 (eos_token_id)
-    #     output_text = self.llm_tokenizer.batch_decode(outputs, skip_special_tokens=True)
-    #     output_text = [text.strip() for text in output_text]
-
-    #     return output_text

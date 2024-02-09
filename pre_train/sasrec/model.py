@@ -15,14 +15,10 @@ class PointWiseFeedForward(torch.nn.Module):
 
     def forward(self, inputs):
         outputs = self.dropout2(self.conv2(self.relu(self.dropout1(self.conv1(inputs.transpose(-1, -2))))))
-        outputs = outputs.transpose(-1, -2) # as Conv1D requires (N, C, Length)
+        outputs = outputs.transpose(-1, -2)
         outputs += inputs
         return outputs
-
-# pls use the following self-made multihead attention layer
-# in case your pytorch version is below 1.16 or for other reasons
-# https://github.com/pmixer/TiSASRec.pytorch/blob/master/model.py
-
+    
 class SASRec(torch.nn.Module):
     def __init__(self, user_num, item_num, args):
         super(SASRec, self).__init__()
@@ -32,13 +28,11 @@ class SASRec(torch.nn.Module):
         self.item_num = item_num
         self.dev = args.device
 
-        # TODO: loss += args.l2_emb for regularizing embedding vectors during training
-        # https://stackoverflow.com/questions/42704283/adding-l1-l2-regularization-in-pytorch
         self.item_emb = torch.nn.Embedding(self.item_num+1, args.hidden_units, padding_idx=0)
-        self.pos_emb = torch.nn.Embedding(args.maxlen, args.hidden_units) # TO IMPROVE
+        self.pos_emb = torch.nn.Embedding(args.maxlen, args.hidden_units)
         self.emb_dropout = torch.nn.Dropout(p=args.dropout_rate)
 
-        self.attention_layernorms = torch.nn.ModuleList() # to be Q for self-attention
+        self.attention_layernorms = torch.nn.ModuleList()
         self.attention_layers = torch.nn.ModuleList()
         self.forward_layernorms = torch.nn.ModuleList()
         self.forward_layers = torch.nn.ModuleList()
@@ -63,9 +57,6 @@ class SASRec(torch.nn.Module):
             new_fwd_layer = PointWiseFeedForward(args.hidden_units, args.dropout_rate)
             self.forward_layers.append(new_fwd_layer)
 
-            # self.pos_sigmoid = torch.nn.Sigmoid()
-            # self.neg_sigmoid = torch.nn.Sigmoid()
-
     def log2feats(self, log_seqs):
         seqs = self.item_emb(torch.LongTensor(log_seqs).to(self.dev))
         seqs *= self.item_emb.embedding_dim ** 0.5
@@ -74,9 +65,9 @@ class SASRec(torch.nn.Module):
         seqs = self.emb_dropout(seqs)
 
         timeline_mask = torch.BoolTensor(log_seqs == 0).to(self.dev)
-        seqs *= ~timeline_mask.unsqueeze(-1) # broadcast in last dim
+        seqs *= ~timeline_mask.unsqueeze(-1)
 
-        tl = seqs.shape[1] # time dim len for enforce causality
+        tl = seqs.shape[1]
         attention_mask = ~torch.tril(torch.ones((tl, tl), dtype=torch.bool, device=self.dev))
 
         for i in range(len(self.attention_layers)):
@@ -84,8 +75,7 @@ class SASRec(torch.nn.Module):
             Q = self.attention_layernorms[i](seqs)
             mha_outputs, _ = self.attention_layers[i](Q, seqs, seqs, 
                                             attn_mask=attention_mask)
-                                            # key_padding_mask=timeline_mask
-                                            # need_weights=False) this arg do not work?
+
             seqs = Q + mha_outputs
             seqs = torch.transpose(seqs, 0, 1)
 
@@ -93,11 +83,11 @@ class SASRec(torch.nn.Module):
             seqs = self.forward_layers[i](seqs)
             seqs *=  ~timeline_mask.unsqueeze(-1)
 
-        log_feats = self.last_layernorm(seqs) # (U, T, C) -> (U, -1, C)
+        log_feats = self.last_layernorm(seqs)
         return log_feats
 
-    def forward(self, user_ids, log_seqs, pos_seqs, neg_seqs, mode='default'): # for training        
-        log_feats = self.log2feats(log_seqs) # user_ids hasn't been used yet
+    def forward(self, user_ids, log_seqs, pos_seqs, neg_seqs, mode='default'):
+        log_feats = self.log2feats(log_seqs)
         if mode == 'log_only':
             log_feats = log_feats[:, -1, :]
             return log_feats
@@ -113,17 +103,15 @@ class SASRec(torch.nn.Module):
         if mode == 'item':
             return log_feats.reshape(-1, log_feats.shape[2]), pos_embs.reshape(-1, log_feats.shape[2]), neg_embs.reshape(-1, log_feats.shape[2])
         else:
-            return pos_logits, neg_logits # pos_pred, neg_pred
+            return pos_logits, neg_logits
 
-    def predict(self, user_ids, log_seqs, item_indices): # for inference
-        log_feats = self.log2feats(log_seqs) # user_ids hasn't been used yet
+    def predict(self, user_ids, log_seqs, item_indices):
+        log_feats = self.log2feats(log_seqs)
 
-        final_feat = log_feats[:, -1, :] # only use last QKV classifier, a waste
+        final_feat = log_feats[:, -1, :]
 
-        item_embs = self.item_emb(torch.LongTensor(item_indices).to(self.dev)) # (U, I, C)
+        item_embs = self.item_emb(torch.LongTensor(item_indices).to(self.dev))
 
         logits = item_embs.matmul(final_feat.unsqueeze(-1)).squeeze(-1)
 
-        # preds = self.pos_sigmoid(logits) # rank same item list for different users
-
-        return logits # preds # (U, I)
+        return logits

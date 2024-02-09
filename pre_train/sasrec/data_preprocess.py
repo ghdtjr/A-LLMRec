@@ -23,7 +23,6 @@ def preprocess(fname):
     dataset_name = fname
 
     if data_type == 'amazon':
-        # file_path = f'./pre_train/sasrec/data/{fname}.json.gz'
         file_path = f'./data/{fname}.json.gz'
         f = open('./reviews_' + dataset_name + 'trash.txt', 'w')
         
@@ -46,7 +45,7 @@ def preprocess(fname):
         review_dict = {}
         name_dict = {'title':{}, 'description':{}}
         import json
-        # f = open('./pre_train/sasrec/data/meta_Movies_and_TV.json', 'r')
+        
         f = open(f'./data/meta_{fname}.json', 'r')
         json_data = f.readlines()
         f.close()
@@ -61,7 +60,6 @@ def preprocess(fname):
             rev = l['reviewerID']
             time = l['unixReviewTime']
             
-            # do not use item and user which interactions are less than 5.
             if countU[rev] < 5 or countP[asin] < 5:
                 continue
             
