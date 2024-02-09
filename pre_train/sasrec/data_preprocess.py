@@ -65,7 +65,6 @@ def preprocess(fname):
             if countU[rev] < 5 or countP[asin] < 5:
                 continue
             
-            # userid를 1부터 다시 설정
             if rev in usermap:
                 userid = usermap[rev]
             else:

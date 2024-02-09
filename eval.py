@@ -14,7 +14,7 @@ def get_answers_predictions(file_path):
                     llm_prediction = llm_prediction.replace("\"item title\" : ", '')
                     start = llm_prediction.find('"')
                     end = llm_prediction.rfind('"')
-                    # Error case
+
                     if (start + end < start) or (start + end < end):
                         print(1/0)
                         

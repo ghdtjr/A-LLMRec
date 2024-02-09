@@ -99,7 +99,6 @@ class SeqDataset(Dataset):
 
         
     def __len__(self):
-        # 총 user 의 수 = 학습에 사용할 sequence 의 수 
         return self.num_user
         
     def __getitem__(self, idx):
@@ -108,7 +107,6 @@ class SeqDataset(Dataset):
         pos = np.zeros([self.max_len], dtype=np.int32)
         neg = np.zeros([self.max_len], dtype=np.int32)
     
-        # user의 last seq 가져오기
         nxt = self.user_train[user_id][-1]
         length_idx = self.max_len - 1
         
@@ -137,7 +135,6 @@ class SeqDataset_Inference(Dataset):
 
         
     def __len__(self):
-        # 총 user 의 수 = 학습에 사용할 sequence 의 수 
         return self.num_user
         
     def __getitem__(self, idx):
@@ -154,7 +151,7 @@ class SeqDataset_Inference(Dataset):
         rated.add(0)
         pos = self.user_test[user_id][0]
         neg = []
-        for _ in range(3): #Negative set 개수
+        for _ in range(3):
             t = np.random.randint(1,self.num_item+1)
             while t in rated: t = np.random.randint(1,self.num_item+1)
             neg.append(t)
@@ -170,7 +167,6 @@ def data_partition(fname):
     user_test = {}
     # assume user/item index starting from 1
     
-    # item interaction이 3개가 넘는 user에 대해서만, 제일 최근 interaction은 test, 그 전 interaction은 valid에 넣는다.
     # f = open('./pre_train/sasrec/data/%s.txt' % fname, 'r')
     f = open('./data/%s.txt' % fname, 'r')
     for line in f:
@@ -271,8 +267,6 @@ def evaluate_valid(model, dataset, args):
         rated.add(0)
         item_idx = [valid[u][0]]
         
-        # item_idx에 valid 정답 1개랑 fake 100개 넣은 다음에 정답이 몇 위에 있는지 확인
-        # prediction 값이 낮아야 예상되는 item
         for _ in range(100):
             t = np.random.randint(1, itemnum + 1)
             while t in rated: t = np.random.randint(1, itemnum + 1)
