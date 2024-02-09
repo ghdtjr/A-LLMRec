@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from pytz import timezoneå
+from pytz import timezone
 
 def create_dir(directory):
     if not os.path.exists(directory):
