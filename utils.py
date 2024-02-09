@@ -1,17 +1,6 @@
 import os
 from datetime import datetime
-from pytz import timezone
-
-def log_args_time(args):
-    if not os.path.isdir(args.dataset + '_' + args.train_dir):
-        os.makedirs(args.dataset + '_' + args.train_dir)
-        
-    with open(os.path.join(args.dataset + '_' + args.train_dir, 'logs.txt'), 'a') as f:
-        now = datetime.now(timezone('Asia/Seoul'))
-        f.write("Timestamp: {}_{}-{}_{} \n".format(now.month, now.day, now.hour, now.minute))
-        f.write('\n'.join(f'{k}={v}' for k, v in vars(args).items()))
-        f.write("\n--------------------------------------------------------")
-    f.close()
+from pytz import timezoneå
 
 def create_dir(directory):
     if not os.path.exists(directory):
