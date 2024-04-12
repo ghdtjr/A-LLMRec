@@ -1,11 +1,3 @@
-### W2.1
-
--   Following reviewer’s suggestion, we also compared A-LLMRec with additional baselines. However, we excluded Dropoutnet [1] from our comparison for fairness, as it relies on user content features, which are not utilized in our study. Additionally, for fair comparisons, CLCRec [2] and ALDI [3] use the same textual data as A-LLMRec for their item content features. The comparison results with CLCRec and ALDI on general and cold-item scenarios are presented in the table [link](https://shorturl.at/bfrTW).
-
-### W2.2
-
--   Please refer to our answer to Reviewer 1G7b W2-3.
-
 ### W3
 
 -   We conduct parameter studies on the effect of embedding dimension to the LLM prompting [link](https://shorturl.at/aikNV). Parameter studies on other hyper-parameters are reported in Appendix D and Table 12.
