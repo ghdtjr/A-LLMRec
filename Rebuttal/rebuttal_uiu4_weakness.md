@@ -1,6 +1,6 @@
 ### W2.1
 
--   Following reviewer’s suggestion, we also compared A-LLMRec with additional baselines. However, we excluded Dropoutnet [1] from our comparison for fairness, as it relies on user content features, which are not utilized in our study. Additionally, for fair comparisons, CLCRec [2] and ALDI [3] use the same textual data as A-LLMRec for their item content features. The comparison results with CLCRec and ALDI on general and cold-item scenarios are presented in the table[link](https://shorturl.at/bfrTW).
+-   Following reviewer’s suggestion, we also compared A-LLMRec with additional baselines. However, we excluded Dropoutnet [1] from our comparison for fairness, as it relies on user content features, which are not utilized in our study. Additionally, for fair comparisons, CLCRec [2] and ALDI [3] use the same textual data as A-LLMRec for their item content features. The comparison results with CLCRec and ALDI on general and cold-item scenarios are presented in the table [link](https://shorturl.at/bfrTW).
 
 ### W2.2
 
