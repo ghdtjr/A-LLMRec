@@ -16,14 +16,14 @@ def load_checkpoint(recsys, pre_trained):
     path = f'pre_train/{recsys}/{pre_trained}/'
     
     pth_file_path = find_filepath(path, '.pth')
-    assert len(pth_file_path) == 1, 'There are more than two models in this dir.\n'
+    assert len(pth_file_path) == 1, 'There are more than two models in this dir. You need to remove other model files.\n'
     kwargs, checkpoint = torch.load(pth_file_path[0], map_location="cpu")
     logging.info("load checkpoint from %s" % pth_file_path[0])
 
     return kwargs, checkpoint
 
 class RecSys(nn.Module):
-    def __init__(self, recsys_model, pre_trained_data, device, option=None):
+    def __init__(self, recsys_model, pre_trained_data, device):
         super().__init__()
         kwargs, checkpoint = load_checkpoint(recsys_model, pre_trained_data)
         kwargs['args'].device = device
@@ -40,19 +40,3 @@ class RecSys(nn.Module):
         
     def forward():
         print('forward')
-
-    def show_n_params(self, return_str=True):
-        tot = 0
-        for p in self.parameters():
-            w = 1
-            for x in p.shape:
-                w *= x
-            tot += w
-        if return_str:
-            if tot >= 1e6:
-                return "{:.1f}M".format(tot / 1e6)
-            else:
-                return "{:.1f}K".format(tot / 1e3)
-        else:
-            return tot
-

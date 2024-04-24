@@ -146,7 +146,7 @@ class SeqDataset_Inference(Dataset):
         neg = np.array(neg)
         return user_id, seq, pos, neg
 # train/val/test data generation
-def data_partition(fname):
+def data_partition(fname, path=None):
     usernum = 0
     itemnum = 0
     User = defaultdict(list)
@@ -156,7 +156,10 @@ def data_partition(fname):
     # assume user/item index starting from 1
     
     # f = open('./pre_train/sasrec/data/%s.txt' % fname, 'r')
-    f = open('./data/%s.txt' % fname, 'r')
+    if path == None:
+        f = open('../../data/amazon/%s.txt' % fname, 'r')
+    else:
+        f = open(path, 'r')
     for line in f:
         u, i = line.rstrip().split(' ')
         u = int(u)

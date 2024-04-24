@@ -23,7 +23,7 @@ def setup_ddp(rank, world_size):
     torch.cuda.set_device(rank)
     
 def train_model_phase1(args):
-    print('(A-LLMRec) start phase 1\n')
+    print('A-LLMRec start train phase-1\n')
     if args.multi_gpu:
         world_size = torch.cuda.device_count()
         mp.spawn(train_model_phase1_, args=(world_size, args), nprocs=world_size)
@@ -31,7 +31,7 @@ def train_model_phase1(args):
         train_model_phase1_(0, 0, args)
         
 def train_model_phase2(args):
-    print('(A-LLMRec) strat phase 2\n')
+    print('A-LLMRec strat train phase-2\n')
     if args.multi_gpu:
         world_size = torch.cuda.device_count()
         mp.spawn(train_model_phase2_, args=(world_size, args), nprocs=world_size)
@@ -39,7 +39,7 @@ def train_model_phase2(args):
         train_model_phase2_(0, 0, args)
 
 def inference(args):
-    print('(A-LLMRec) start inference\n')
+    print('A-LLMRec start inference\n')
     if args.multi_gpu:
         world_size = torch.cuda.device_count()
         mp.spawn(inference_, args=(world_size, args), nprocs=world_size)
@@ -54,7 +54,7 @@ def train_model_phase1_(rank, world_size, args):
     model = A_llmrec_model(args).to(args.device)
     
     # preprocess data
-    dataset = data_partition(args.rec_pre_trained_data)
+    dataset = data_partition(args.rec_pre_trained_data, path=f'./data/amazon/{args.rec_pre_trained_data}.txt')
     [user_train, user_valid, user_test, usernum, itemnum] = dataset
     print('user num:', usernum, 'item num:', itemnum)
     num_batch = len(user_train) // args.batch_size1
@@ -106,7 +106,7 @@ def train_model_phase2_(rank,world_size,args):
     phase1_epoch = 10
     model.load_model(args, phase1_epoch=phase1_epoch)
 
-    dataset = data_partition(args.rec_pre_trained_data)
+    dataset = data_partition(args.rec_pre_trained_data, path=f'./data/amazon/{args.rec_pre_trained_data}.txt')
     [user_train, user_valid, user_test, usernum, itemnum] = dataset
     print('user num:', usernum, 'item num:', itemnum)
     num_batch = len(user_train) // args.batch_size2
@@ -157,7 +157,7 @@ def inference_(rank, world_size, args):
     phase2_epoch = 5
     model.load_model(args, phase1_epoch=phase1_epoch, phase2_epoch=phase2_epoch)
 
-    dataset = data_partition(args.rec_pre_trained_data)
+    dataset = data_partition(args.rec_pre_trained_data, path=f'./data/amazon/{args.rec_pre_trained_data}.txt')
     [user_train, user_valid, user_test, usernum, itemnum] = dataset
     print('user num:', usernum, 'item num:', itemnum)
     num_batch = len(user_train) // args.batch_size_infer
@@ -165,11 +165,7 @@ def inference_(rank, world_size, args):
     for u in user_train:
         cc += len(user_train[u])
     print('average sequence length: %.2f' % (cc / len(user_train)))
-    
     model.eval()
-    f = open(f'./test_output_generate_rank_{rank}.txt','a')
-    f.write(f'-----Info----Generate----Info-----\n\n')
-    f.close()
     
     if usernum>10000:
         users = random.sample(range(1, usernum + 1), 10000)

@@ -30,13 +30,11 @@ class A_llmrec_model(nn.Module):
         rec_pre_trained_data = args.rec_pre_trained_data
         self.args = args
         self.device = args.device
-        self.exp = args.exp
-        self.option = args.option
         
-        with open(f'./pre_train/{args.recsys}/data/{args.rec_pre_trained_data}_meta.json.gz','rb') as ft:
+        with open(f'./data/amazon/{args.rec_pre_trained_data}_text_name_dict.json.gz','rb') as ft:
             self.text_name_dict = pickle.load(ft)
         
-        self.recsys = RecSys(args.recsys, rec_pre_trained_data+'_default', self.device, self.option)
+        self.recsys = RecSys(args.recsys, rec_pre_trained_data, self.device)
         self.item_num = self.recsys.item_num
         self.rec_sys_dim = self.recsys.hidden_units
         self.sbert_dim = 768
@@ -61,7 +59,7 @@ class A_llmrec_model(nn.Module):
         self.bce_criterion = torch.nn.BCEWithLogitsLoss()
         
         if args.pretrain_stage2 or args.inference:
-            self.llm = llm4rec(llm_model=args.llm)
+            self.llm = llm4rec(device=self.device, llm_model=args.llm)
             
             self.log_emb_proj = nn.Sequential(
                 nn.Linear(self.rec_sys_dim, self.llm.llm_model.config.hidden_size),
@@ -82,7 +80,7 @@ class A_llmrec_model(nn.Module):
             nn.init.xavier_normal_(self.item_emb_proj[3].weight)
             
     def save_model(self, args, epoch1=None, epoch2=None):
-        out_dir = f'./models/saved_models_{args.exp}{args.option}/'
+        out_dir = f'./models/saved_models/'
         create_dir(out_dir)
         out_dir += f'{args.rec_pre_trained_data}_{args.recsys}_{epoch1}_'
         if args.pretrain_stage1:
@@ -96,7 +94,7 @@ class A_llmrec_model(nn.Module):
             torch.save(self.item_emb_proj.state_dict(), out_dir + 'item_proj.pt')
             
     def load_model(self, args, phase1_epoch=None, phase2_epoch=None):
-        out_dir = f'./models/saved_models_{args.exp}{args.option}/{args.rec_pre_trained_data}_{args.recsys}_{phase1_epoch}_'
+        out_dir = f'./models/saved_models/{args.rec_pre_trained_data}_{args.recsys}_{phase1_epoch}_'
         
         mlp = torch.load(out_dir + 'mlp.pt', map_location = args.device)
         self.mlp.load_state_dict(mlp)
@@ -318,7 +316,7 @@ class A_llmrec_model(nn.Module):
             
         samples = {'text_input': text_input, 'text_output': text_output, 'interact': interact_embs, 'candidate':candidate_embs}
         log_emb = self.log_emb_proj(log_emb)
-        loss_rm = self.llm(log_emb, '', samples, mode='next_item_prediction_mlp')
+        loss_rm = self.llm(log_emb, samples)
         loss_rm.backward()
         optimizer.step()
         mean_loss += loss_rm.item()
@@ -399,7 +397,6 @@ class A_llmrec_model(nn.Module):
                     num_beams=1,
                     max_length=512,
                     min_length=1,
-                    # eos_token_id=self.eos_token_id,
                     pad_token_id=self.llm.llm_tokenizer.eos_token_id,
                     repetition_penalty=1.5,
                     length_penalty=1,
@@ -411,7 +408,7 @@ class A_llmrec_model(nn.Module):
             output_text = [text.strip() for text in output_text]
 
         for i in range(len(text_input)):
-            f = open(f'./test_output_generate_rank_{rank}.txt','a')
+            f = open(f'./recommendation_output.txt','a')
             f.write(text_input[i])
             f.write('\n\n')
             

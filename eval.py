@@ -20,7 +20,7 @@ def get_answers_predictions(file_path):
                         
                     llm_prediction = llm_prediction[start+1:end]
                 except Exception as e:
-                    print(e)
+                    print()
                     
                 llm_predictions.append(llm_prediction)
                 
@@ -45,7 +45,7 @@ def evaluate(answers, llm_predictions, k=1):
     return NDCG / predict_num, HT / predict_num
 
 if __name__ == "__main__":
-    inferenced_file_path = './test_output_generate_rank_0.txt'
+    inferenced_file_path = './recommendation_output.txt'
     answers, llm_predictions = get_answers_predictions(inferenced_file_path)
     print(len(answers), len(llm_predictions))
     assert(len(answers) == len(llm_predictions))
