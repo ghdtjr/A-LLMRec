@@ -1,5 +1,7 @@
 # A-LLMRec : Large Language Models meet Collaborative Filtering: An Efficient All-round LLM-based Recommender System
 
+The source code for A-LLMRec : Large Language Models meet Collaborative Filtering: An Efficient All-round LLM-based Recommender System paper, accepted at **KDD 2024**.
+
 ## Overview
 In this [paper](https://arxiv.org/abs/2404.11343), we propose an efficient all-round LLM-based recommender system, called A-LLMRec (All-round LLM-based Recommender system). The main idea is to enable an LLM to directly leverage the collaborative knowledge contained in a pre-trained collaborative filtering recommender system (CF-RecSys) so that the emergent ability of the LLM can be jointly exploited. By doing so, A-LLMRec can outperform under the various scenarios including warm/cold, few-shot, cold user, and cross-domain scenarios.
 
