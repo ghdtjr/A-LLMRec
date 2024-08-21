@@ -13,7 +13,14 @@ pip install -r requirements.txt
 ```
 
 ## Dataset
-Download [Amazon dataset](https://jmcauley.ucsd.edu/data/amazon/) for the experiment. Should download metadata and reviews files and place them into data/amazon direcotory.
+Download [dataset of 2018 Amazon Review dataset](https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/) for the experiment. Should download metadata and reviews files and place them into data/amazon direcotory.
+
+```
+cd data/amazon
+wget https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFiles/Movies_and_TV.json.gz  # download review dataset
+wget https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/metaFiles2/meta_Movies_and_TV.json.gz  # download metadata
+gzip -d meta_Movies_and_TV.json.gz
+```
   
 ## Pre-train CF-RecSys (SASRec)
 ```
