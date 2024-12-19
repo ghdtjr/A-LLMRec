@@ -31,7 +31,7 @@ def train_model_phase1(args):
         train_model_phase1_(0, 0, args)
         
 def train_model_phase2(args):
-    print('A-LLMRec strat train phase-2\n')
+    print('A-LLMRec start train phase-2\n')
     if args.multi_gpu:
         world_size = torch.cuda.device_count()
         mp.spawn(train_model_phase2_, args=(world_size, args), nprocs=world_size)
