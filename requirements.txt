@@ -1,0 +1,13 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: linux-64
+_libgcc_mutex=0.1=main
+_openmp_mutex=5.1=1_gnu
+torch=2.1.2=pypi_0
+tqdm=4.65.0=pypi_0
+pytz=2023.3.post1=pypi_0
+numpy=1.26.3=pypi_0
+accelerate=0.25.0=pyhd8ed1ab_0
+bitsandbytes=0.42.0=pypi_0
+transformers=4.32.1=pypi_0
+sentence-transformers=2.2.2=pyhd8ed1ab_0
