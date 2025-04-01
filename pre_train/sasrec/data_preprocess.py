@@ -21,9 +21,13 @@ def preprocess(fname):
     # counting interactions for each user and item
     for l in parse(file_path):
         line += 1
+        if ('Beauty' in fname) or ('Toys' in fname):
+            if l['overall'] < 3:
+                continue
         asin = l['asin']
         rev = l['reviewerID']
         time = l['unixReviewTime']
+
         countU[rev] += 1
         countP[asin] += 1
     
